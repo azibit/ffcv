@@ -45,7 +45,7 @@ from ffcv.transforms import RandomHorizontalFlip, Cutout, \
 from ffcv.transforms.common import Squeeze
 from ffcv.writer import DatasetWriter
 
-from models import *
+from ../../models import *
 
 Section('training', 'Hyperparameters').params(
     lr=Param(float, 'The learning rate to use', required=True),
