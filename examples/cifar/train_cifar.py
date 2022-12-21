@@ -45,6 +45,8 @@ from ffcv.transforms import RandomHorizontalFlip, Cutout, \
 from ffcv.transforms.common import Squeeze
 from ffcv.writer import DatasetWriter
 
+from models import *
+
 Section('training', 'Hyperparameters').params(
     lr=Param(float, 'The learning rate to use', required=True),
     epochs=Param(int, 'Number of epochs to run for', required=True),
@@ -94,7 +96,7 @@ def make_dataloaders(train_dataset=None, val_dataset=None, batch_size=None, num_
             Convert(ch.float16),
             torchvision.transforms.Normalize(CIFAR_MEAN, CIFAR_STD),
         ])
-        
+
         ordering = OrderOption.RANDOM if name == 'train' else OrderOption.SEQUENTIAL
 
         loaders[name] = Loader(paths[name], batch_size=batch_size, num_workers=num_workers,
@@ -129,19 +131,22 @@ def conv_bn(channels_in, channels_out, kernel_size=3, stride=1, padding=1, group
 
 def construct_model():
     num_class = 10
-    model = ch.nn.Sequential(
-        conv_bn(3, 64, kernel_size=3, stride=1, padding=1),
-        conv_bn(64, 128, kernel_size=5, stride=2, padding=2),
-        Residual(ch.nn.Sequential(conv_bn(128, 128), conv_bn(128, 128))),
-        conv_bn(128, 256, kernel_size=3, stride=1, padding=1),
-        ch.nn.MaxPool2d(2),
-        Residual(ch.nn.Sequential(conv_bn(256, 256), conv_bn(256, 256))),
-        conv_bn(256, 128, kernel_size=3, stride=1, padding=0),
-        ch.nn.AdaptiveMaxPool2d((1, 1)),
-        Flatten(),
-        ch.nn.Linear(128, num_class, bias=False),
-        Mul(0.2)
-    )
+    # Trying different model for speed comparison
+    # model = ch.nn.Sequential(
+    #     conv_bn(3, 64, kernel_size=3, stride=1, padding=1),
+    #     conv_bn(64, 128, kernel_size=5, stride=2, padding=2),
+    #     Residual(ch.nn.Sequential(conv_bn(128, 128), conv_bn(128, 128))),
+    #     conv_bn(128, 256, kernel_size=3, stride=1, padding=1),
+    #     ch.nn.MaxPool2d(2),
+    #     Residual(ch.nn.Sequential(conv_bn(256, 256), conv_bn(256, 256))),
+    #     conv_bn(256, 128, kernel_size=3, stride=1, padding=0),
+    #     ch.nn.AdaptiveMaxPool2d((1, 1)),
+    #     Flatten(),
+    #     ch.nn.Linear(128, num_class, bias=False),
+    #     Mul(0.2)
+    # )
+
+    model = ResNet18()
     model = model.to(memory_format=ch.channels_last).cuda()
     return model
 
